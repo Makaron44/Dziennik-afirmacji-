@@ -6,6 +6,9 @@
   <title>Dziennik 52‑tygodniowych afirmacji (offline)</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0b1020">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
   <style>
     :root {
       --bg: #f7f7fb;
@@ -159,7 +162,17 @@
     .dark input[type="checkbox"] { accent-color: #818cf8; }
     /* Slightly brighter borders in dark */
     .dark .day { border-color: #334155; }
-
+    /* PWA safe areas (Dynamic Island / notch) */
+.standalone .container{
+  padding-top: calc(16px + env(safe-area-inset-top));
+  padding-left: calc(16px + env(safe-area-inset-left));
+  padding-right: calc(16px + env(safe-area-inset-right));
+}
+.standalone .reader{
+  padding-top: calc(16px + env(safe-area-inset-top));
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
   </style>
 </head>
 <body>
@@ -276,6 +289,13 @@
   </div>
 
   <script>
+     // PWA: wykryj tryb standalone i włącz safe-area
+  try {
+    const isStandalone =
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+      navigator.standalone;
+    if (isStandalone) document.documentElement.classList.add('standalone');
+  } catch {}
     const STORAGE_KEY = "affirm52_singlefile_v1";
 
     function startOfDay(d){ const x=new Date(d); x.setHours(0,0,0,0); return x; }
@@ -616,6 +636,12 @@
       closeReader.onclick = ()=> reader.classList.remove("open");
       fontRange.oninput = ()=>{ readerBody.style.fontSize = fontRange.value + "px"; localStorage.setItem("affirm52_font", fontRange.value); };
     });
+    // PWA: offline przez Service Workera (opcjonalnie, ale polecam)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    });
+  }
 
     // Initial render
     render();
