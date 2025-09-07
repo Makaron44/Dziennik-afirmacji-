@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Dziennik 52‑tygodniowych afirmacji (offline)</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <style>
+    :root {
+      --bg: #f7f7fb;
+      --card: #ffffff;
+      --ink: #101828;
+      --muted: #667085;
+      --primary: #4f46e5;
+      --primary-ink: #ffffff;
+      --ring: rgba(79,70,229,0.3);
+      --border: #e5e7eb;
+      --green: #22c55e;
+      --blue: #3b82f6;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--ink);
+      background: linear-gradient(180deg, #eef2ff 0%, var(--bg) 20%);
+    }
+    .container { max-width: 960px; margin: 0 auto; padding: 16px 16px 100px; }
+    h1 { font-size: 22px; margin: 8px 0 2px; font-weight: 800; }
+    p.sub { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+    .grid { display: grid; gap: 12px; }
+    @media (min-width: 820px) {
+      .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+      .grid-2 { grid-template-columns: 1fr 1fr; }
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      box-shadow: 0 1px 2px rgba(16,24,40,0.06);
+    }
+    .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .row-right { margin-left: auto; display: flex; gap: 8px; }
+    label, .label { font-size: 13px; color: var(--muted); }
+    input[type="date"], select, textarea, input[type="file"]::file-selector-button {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 15px;
+      background: #fff;
+      color: var(--ink);
+      outline: none;
+    }
+    input[type="date"]:focus, select:focus, textarea:focus { box-shadow: 0 0 0 4px var(--ring); border-color: var(--primary); }
+    textarea { min-height: 120px; resize: vertical; }
+    .btn {
+      appearance: none; border: 0; border-radius: 12px; padding: 10px 12px; font-weight: 600; font-size: 14px;
+      background: var(--primary); color: var(--primary-ink); cursor: pointer;
+    }
+    .btn.ghost { background: #fff; color: var(--ink); border: 1px solid var(--border); }
+    .btn.subtle { background: #eef2ff; color: #3730a3; }
+    .btn.danger { background: #ef4444; color: #fff; }
+    .badge { padding: 4px 8px; border-radius: 999px; background: #eef2ff; color: #3730a3; font-size: 12px; font-weight: 700; }
+    .stat { text-align: center; background: #f3f4f6; border-radius: 12px; padding: 10px; }
+    .stat .v { font-weight: 800; font-size: 20px; }
+    .stat .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .toggle { display: flex; align-items: center; gap: 8px; }
+    .toggle input[type="checkbox"] { width: 22px; height: 22px; }
+    .day { border: 1px solid var(--border); border-radius: 14px; padding: 10px; background: #fff; }
+    .day .hd { display:flex; align-items:center; justify-content:space-between; margin-bottom: 6px; }
+    .muted { color: var(--muted); }
+    .calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .calcell { height: 64px; border: 1px solid var(--border); border-radius: 10px; padding: 6px; display: flex; flex-direction: column; justify-content: space-between; }
+    .dot { width: 10px; height: 10px; border-radius: 999px; border: 1px solid #d1d5db; }
+    .dot.m.on { background: var(--green); border-color: var(--green); }
+    .dot.e.on { background: var(--blue); border-color: var(--blue); }
+    .stickybar {
+      position: fixed; bottom: env(safe-area-inset-bottom, 0); left: 0; right: 0; padding: 10px 16px;
+      background: rgba(255,255,255,0.94); backdrop-filter: blur(8px); border-top: 1px solid var(--border);
+      display: flex; gap: 8px; z-index: 50;
+    }
+    .stickybar .btn { flex: 1; }
+    .small { font-size: 12px; }
+    @media print {
+      .stickybar, .noprint { display: none !important; }
+      body { background: #fff; }
+      .container { padding: 0; }
+    }
+  
+    .reader {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(6px);
+      display: none; z-index: 1000;
+      padding: 16px; padding-bottom: calc(16px + env(safe-area-inset-bottom));
+    }
+    .reader.open { display: block; }
+    .reader .panel {
+      max-width: 800px; margin: 0 auto; background: #ffffff; color: #0b0b10;
+      border-radius: 16px; padding: 14px; height: 84vh; display: flex; flex-direction: column;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .reader .top { display:flex; align-items:center; justify-content:space-between; gap: 8px; margin-bottom: 8px; }
+    .reader .body { overflow:auto; flex:1; line-height: 1.6; }
+    .reader .close { border: 1px solid var(--border); background: #fff; color: var(--ink); }
+    .reader .range { width: 140px; }
+    @media (min-width:820px){
+      .reader .panel{ height: 88vh; }
+    }
+
+  
+    /* --- Alignment fixes for iOS --- */
+    input[type="date"], select { text-align: left; text-align-last: left; }
+    input[type="date"]::-webkit-datetime-edit { text-align: left; }
+    input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+    .formrow { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; }
+    /* --- Dark theme --- */
+    .dark { color-scheme: dark; }
+    .dark body { background: linear-gradient(180deg, #0b1020 0%, #0c1022 20%); }
+    .dark .card { background: #0f172a; border-color: #1f2937; box-shadow: 0 1px 2px rgba(0,0,0,0.6); }
+    .dark .label, .dark .muted, .dark .sub { color: #94a3b8; }
+    .dark .badge { background: #1e293b; color: #c7d2fe; }
+    .dark .btn { background: #6366f1; color: white; }
+    .dark .btn.ghost { background: #0b1220; color: #e5e7eb; border-color: #293241; }
+    .dark .btn.subtle { background: #1f2937; color: #c7d2fe; }
+    .dark .btn.close { background: #0b1220; color: #e5e7eb; border-color: #293241; }
+    .dark input[type="date"], .dark select, .dark textarea {
+      background: #0b1220; color: #e5e7eb; border-color: #293241;
+    }
+    .dark .stat { background: #111827; }
+    .dark .day { background: #0b1220; border-color: #293241; }
+    .dark .calendar .calcell { background: #0b1220; border-color: #293241; }
+    .dark .stickybar { background: rgba(10,14,25,0.94); border-top-color: #1f2937; }
+    .dark .reader .panel { background: #0b1220; color: #e5e7eb; }
+
+  
+    /* Fine-tune alignment of 'Data startowa' on iOS */
+    #startDate { margin-left: -2px; margin-right: -2px; }
+    /* Ensure labels and fields line up nicely */
+    .card .label { padding-left: 2px; }
+
+  
+    /* Dark mode contrast fixes */
+    .dark h1 { color: #e5e7eb; }
+    .dark .stat .v { color: #e5e7eb; }
+    .dark .stat .l { color: #9aa4b2; }
+    .dark .calendar .calcell .small { color: #e5e7eb; }
+    .dark .calendar .small { color: #9aa4b2; } /* weekday headers */
+
+  
+    /* Improve visibility in dark mode for day labels/dates */
+    .dark .day .hd div { color: #e5e7eb; }
+    .dark .day .hd .small { color: #9aa4b2; }
+    /* Checkbox accent color */
+    input[type="checkbox"] { accent-color: #6366f1; }
+    .dark input[type="checkbox"] { accent-color: #818cf8; }
+    /* Slightly brighter borders in dark */
+    .dark .day { border-color: #334155; }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="row">
+      <div>
+        <h1>Dziennik 52‑tygodniowych afirmacji</h1>
+        <p class="sub">Działa offline na Twoim iPhonie. Dane zapisywane lokalnie (localStorage).</p>
+      </div>
+      <div class="row-right noprint"><button class="btn ghost" id="themeBtn" title="Przełącz tryb nocny">🌙 Nocny</button>
+        <button class="btn" id="exportBtn" title="Zapisz kopię danych do pliku JSON">Eksport</button>
+        <label class="btn ghost" for="importFile" title="Wczytaj dane z pliku JSON">Import</label>
+        <input class="noprint" type="file" id="importFile" accept="application/json" style="display:none"/>
+        <button class="btn ghost" id="printBtn">Drukuj</button>
+      </div>
+    </header>
+
+    <div class="grid grid-3">
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:8px;">
+          <div class="label">Ustawienia planu</div>
+          <div class="badge" id="startBadge"></div>
+        </div>
+        <div class="row" style="flex-direction:column; align-items:stretch; gap:8px;">
+          <label for="startDate">Data startowa (poniedziałek):</label>
+          <input type="date" id="startDate"/>
+          <div class="row formrow">
+            <label for="weekSel">Tydzień:</label>
+            <select id="weekSel"></select>
+            <button class="btn subtle" id="goCurrent">Bieżący</button>
+          </div>
+        </div>
+        <p class="small muted" style="margin-top:6px;">Wskazówka: ustaw poniedziałek jako początek planu.</p>
+      </div>
+
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:6px;">
+          <div class="label" id="weekTitle">Tydzień — Afirmacja</div>
+          <div class="badge" id="weekRange"></div>
+        </div>
+        <textarea id="affirmation" placeholder="Wpisz afirmację na ten tydzień (może być długa)."></textarea>
+        <div class="row" style="margin-top:8px;">
+          <button class="btn" id="readAff">Pełny ekran</button>
+          <button class="btn subtle" id="saveAff">Zapisz</button>
+          <button class="btn ghost" id="clearAff">Wyczyść</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="label">Postęp tygodnia</div>
+        <div class="row" style="justify-content:space-between; margin-top:6px;">
+          <div class="label">Streak</div>
+          <div class="row">
+            <label class="label" for="streakMode">Wariant:</label>
+            <select id="streakMode">
+              <option value="daily">Dzienny</option>
+              <option value="morning">Poranny</option>
+              <option value="evening">Wieczorny</option>
+            </select>
+          </div>
+        </div>
+        <div class="row" style="gap:8px; margin-top:8px;">
+          <label class="label" for="streakGrace">1 wolny dzień/tydzień:</label>
+          <input type="checkbox" id="streakGrace" />
+        </div>
+        <div class="grid grid-2" style="margin-top:8px;">
+          <div class="stat"><div class="v"><span id="streakCurrent">0</span> <span id="streakBadge" class="badge" style="display:none">🔥</span></div><div class="l">Aktualny streak</div></div>
+          <div class="stat"><div class="v" id="streakBest">0</div><div class="l">Najlepszy streak</div></div>
+        </div>
+        
+        <div class="grid grid-3" style="margin-top:8px;">
+          <div class="stat"><div class="v" id="statSessions">0/14</div><div class="l">Sesje</div></div>
+          <div class="stat"><div class="v" id="statDays">0/7</div><div class="l">Dni</div></div>
+          <div class="stat"><div class="v" id="statPct">0%</div><div class="l">Realizacja</div></div>
+        </div>
+        <div class="row" style="margin-top:8px; flex-wrap:wrap;">
+          <button class="btn subtle" id="markM">Zaznacz Rano – tydzień</button>
+          <button class="btn subtle" id="markE">Zaznacz Wieczór – tydzień</button>
+          <button class="btn ghost" id="clearWeek">Wyczyść tydzień</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px;">
+      <div class="row" style="justify-content:space-between;margin-bottom:6px;">
+        <div class="label">Plan dnia: Rano / Wieczór</div>
+        <div class="badge" id="weekBadge"></div>
+      </div>
+      <div class="grid" id="daysGrid" style="grid-template-columns: repeat(1, 1fr); gap:8px;"></div>
+    </div>
+
+    <div class="grid grid-2" style="margin-top:12px;">
+      <div class="card">
+        <div class="label" style="margin-bottom:6px;">Notatki / spostrzeżenia</div>
+        <textarea id="notes" placeholder="Zapisz wnioski, emocje, obserwacje, sygnały zmian…" style="min-height:160px;"></textarea>
+      </div>
+
+      <div class="card">
+        <div class="row" style="justify-content:space-between;margin-bottom:6px;">
+          <div class="label">Mini‑kalendarz</div>
+          <div class="small muted">• Zielony = rano • Niebieski = wieczór</div>
+        </div>
+        <div class="row" style="justify-content:space-between; margin-bottom:6px;">
+          <div id="calTitle" class="label"></div>
+        </div>
+        <div class="calendar" id="calendar"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stickybar noprint">
+    <button class="btn" id="btnMorning">Odhacz RANO (dziś)</button>
+    <button class="btn" id="btnEvening">Odhacz WIECZÓR (dziś)</button>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "affirm52_singlefile_v1";
+
+    function startOfDay(d){ const x=new Date(d); x.setHours(0,0,0,0); return x; }
+    function startOfWeek(date){
+      const d=new Date(date); const dow=(d.getDay()+6)%7; d.setDate(d.getDate()-dow); d.setHours(0,0,0,0); return d;
+    }
+    function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+    function diffInDays(a,b){ return Math.round((startOfDay(a)-startOfDay(b))/(1000*60*60*24)); }
+    function fmtISO(d){ const y=d.getFullYear(); const m=String(d.getMonth()+1).padStart(2,"0"); const da=String(d.getDate()).padStart(2,"0"); return `${y}-${m}-${da}`; }
+    function parseISO(s){ const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); }
+
+    const defData = () => ({
+      startDate: fmtISO(startOfWeek(new Date())),
+      weeks: {},   // { "1": { affirmation, notes } }
+      progress: {},// { "YYYY-MM-DD": { m:bool, e:bool } }
+    });
+
+    function load(){ try{ const raw=localStorage.getItem(STORAGE_KEY); return raw? JSON.parse(raw): defData(); }catch(e){ return defData(); } }
+    function save(data){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }catch(e){} }
+
+    let data = load();
+    let savedFont = Number(localStorage.getItem('affirm52_font') || 22);
+    let streakMode = localStorage.getItem('affirm52_streak_mode') || 'daily';
+    let streakGrace = (localStorage.getItem('affirm52_streak_grace') || 'true') === 'true';
+    let theme = localStorage.getItem('affirm52_theme') || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    if (theme === 'dark') document.documentElement.classList.add('dark');
+    const today = startOfDay(new Date());
+
+    const el = (id) => document.getElementById(id);
+    const startDateInp = el("startDate");
+    const weekSel = el("weekSel");
+    const startBadge = el("startBadge");
+    const weekRange = el("weekRange");
+    const weekTitle = el("weekTitle");
+    const affTA = el("affirmation");
+    const notesTA = el("notes");
+    const daysGrid = el("daysGrid");
+    const weekBadge = el("weekBadge");
+    const statSessions = el("statSessions");
+    const statDays = el("statDays");
+    const statPct = el("statPct");
+    const calTitle = el("calTitle");
+    const calGrid = el("calendar");
+    const streakCurEl = el("streakCurrent");
+    const streakBestEl = el("streakBest");
+    const streakBadge = el("streakBadge");
+    const streakModeSel = el("streakMode");
+    const streakGraceCb = el("streakGrace");
+
+    // init week options
+    for(let i=1;i<=52;i++){
+      const opt = document.createElement("option");
+      opt.value = String(i);
+      opt.textContent = i;
+      weekSel.appendChild(opt);
+    }
+
+    function clamp(n,min,max){ return Math.min(Math.max(n,min),max); }
+
+    function getCurrentWeekIndex(){
+      const weeksElapsed = Math.floor(diffInDays(today, parseISO(data.startDate)) / 7);
+      return clamp(weeksElapsed + 1, 1, 52);
+    }
+
+    function getWeekStart(week){
+      return addDays(startOfWeek(parseISO(data.startDate)), (week-1)*7);
+    }
+
+    function dayDoneByMode(mark, mode){
+      if (mode === 'morning') return !!mark.m; if (mode === 'evening') return !!mark.e; return !!(mark.m || mark.e);
+    }
+
+    function computeStreak(mode){
+      // Using calendar weeks (Mon-Sun), allow at most 1 missed day per week if grace is enabled.
+      // --- Current streak (counting backward from today) ---
+      let current = 0;
+      const usedSkips = {}; // key = weekStart ISO -> bool
+      let d = new Date(today);
+      while (true) {
+        const iso = fmtISO(d);
+        const wk = fmtISO(startOfWeek(d));
+        const mark = data.progress[iso] || {};
+        const done = dayDoneByMode(mark, mode);
+        if (done) {
+          current++;
+        } else if (streakGrace && !usedSkips[wk]) {
+          usedSkips[wk] = true; // use free day for this week
+          current++;
+        } else {
+          break;
+        }
+        if (+startOfDay(d) <= +startOfDay(parseISO(data.startDate))) break;
+        d = addDays(d, -1);
+      }
+
+      // --- Best streak (scan forward from start) ---
+      let best = 0, run = 0;
+      let prevWk = null;
+      let usedSkipsRun = {}; // per-week map for the current running segment
+      const start = startOfDay(parseISO(data.startDate));
+      const daysTotal = diffInDays(today, start);
+      for (let i=0; i<=daysTotal; i++) {
+        const day = addDays(start, i);
+        const iso = fmtISO(day);
+        const wk = fmtISO(startOfWeek(day));
+        if (wk !== prevWk) prevWk = wk;
+        const mark = data.progress[iso] || {};
+        const done = dayDoneByMode(mark, mode);
+        if (done) {
+          run++;
+        } else if (streakGrace && !usedSkipsRun[wk]) {
+          usedSkipsRun[wk] = true;
+          run++;
+        } else {
+          if (run > best) best = run;
+          run = 0;
+          usedSkipsRun = {};
+        }
+      }
+      if (run > best) best = run;
+      return { current, best };
+    }
+
+    function render(){
+      const currentWeek = getCurrentWeekIndex();
+      if (streakModeSel) streakModeSel.value = streakMode;
+      if (streakGraceCb) streakGraceCb.checked = !!streakGrace;
+      if (!weekSel.value) weekSel.value = String(currentWeek);
+
+      const week = Number(weekSel.value);
+      startDateInp.value = data.startDate;
+      startBadge.textContent = data.startDate;
+      weekBadge.textContent = `Tydzień ${week}`;
+
+      const wStart = getWeekStart(week);
+      const wEnd = addDays(wStart, 6);
+      weekRange.textContent = `${fmtISO(wStart)} – ${fmtISO(wEnd)}`;
+      weekTitle.textContent = `Tydzień ${week} — Afirmacja`;
+
+      const w = data.weeks[String(week)] || { affirmation: "", notes: "" };
+      affTA.value = w.affirmation || "";
+      notesTA.value = w.notes || "";
+
+      // Days grid
+      daysGrid.innerHTML = "";
+      const labels = ["Pn","Wt","Śr","Cz","Pt","Sb","Nd"];
+      for(let i=0;i<7;i++){
+        const d = addDays(wStart, i);
+        const iso = fmtISO(d);
+        const mark = data.progress[iso] || {};
+        const card = document.createElement("div");
+        card.className = "day";
+        card.innerHTML = `
+          <div class="hd">
+            <div style="font-weight:700;">${labels[i]}</div>
+            <div class="small muted">${iso}</div>
+          </div>
+          <div class="toggle"><input type="checkbox" id="m-${iso}" ${mark.m? "checked": ""}/> <label for="m-${iso}">Rano</label></div>
+          <div class="toggle"><input type="checkbox" id="e-${iso}" ${mark.e? "checked": ""}/> <label for="e-${iso}">Wieczór</label></div>
+        `;
+        daysGrid.appendChild(card);
+        card.querySelector(`#m-${iso}`).addEventListener("change", (ev)=> toggleProgress(iso, "m", ev.target.checked));
+        card.querySelector(`#e-${iso}`).addEventListener("change", (ev)=> toggleProgress(iso, "e", ev.target.checked));
+      }
+
+      // Stats
+      let sessions=0, daysDone=0;
+      for(let i=0;i<7;i++){
+        const iso = fmtISO(addDays(wStart,i));
+        const mark = data.progress[iso] || {};
+        if (mark.m) sessions++;
+        if (mark.e) sessions++;
+        if (mark.m || mark.e) daysDone++;
+      }
+      statSessions.textContent = `${sessions}/14`;
+      statDays.textContent = `${daysDone}/7`;
+      statPct.textContent = `${Math.round((sessions/14)*100)}%`;
+
+      // Streak values
+      if (streakCurEl && streakBestEl) {
+        const s = computeStreak(streakMode);
+        streakCurEl.textContent = String(s.current);
+        streakBestEl.textContent = String(s.best);
+        if (streakBadge) { streakBadge.style.display = (s.current > 0 && s.current >= s.best) ? 'inline-block' : 'none'; }
+      }
+
+      // Calendar for month containing week start
+      const mDate = wStart;
+      const y = mDate.getFullYear();
+      const m = mDate.getMonth();
+      const first = new Date(y, m, 1);
+      const last = new Date(y, m+1, 0);
+      const dim = last.getDate();
+      const offset = (first.getDay()+6)%7;
+      calTitle.textContent = mDate.toLocaleString(undefined, { month: "long", year: "numeric" });
+      calGrid.innerHTML = "";
+      ["Pn","Wt","Śr","Cz","Pt","Sb","Nd"].forEach(d => {
+        const hd = document.createElement("div");
+        hd.textContent = d;
+        hd.className = "small muted";
+        hd.style.textAlign = "center";
+        calGrid.appendChild(hd);
+      });
+      for(let i=0;i<offset;i++){
+        const c = document.createElement("div");
+        c.className = "calcell";
+        c.style.visibility = "hidden";
+        calGrid.appendChild(c);
+      }
+      const todayISO = fmtISO(today);
+      for(let d=1; d<=dim; d++){
+        const date = new Date(y, m, d);
+        const iso = fmtISO(date);
+        const mark = data.progress[iso] || {};
+        const cell = document.createElement("div");
+        cell.className = "calcell";
+        cell.style.borderColor = iso===todayISO ? "#6366f1" : "var(--border)";
+        cell.innerHTML = `
+          <div class="small" style="font-weight:700;">${d}</div>
+          <div class="row">
+            <span class="dot m ${mark.m? "on": ""}" title="Rano"></span>
+            <span class="dot e ${mark.e? "on": ""}" title="Wieczór"></span>
+          </div>
+        `;
+        calGrid.appendChild(cell);
+      }
+    }
+
+    function setWeekData(week, patch){
+      const w = data.weeks[String(week)] || { affirmation: "", notes: "" };
+      data.weeks[String(week)] = Object.assign({}, w, patch);
+      save(data); render();
+    }
+
+    function toggleProgress(iso, field, value){
+      data.progress[iso] = Object.assign({}, data.progress[iso] || {}, { [field]: value });
+      save(data); render();
+    }
+
+    // Handlers
+    startDateInp.addEventListener("change", (e)=>{
+      const iso = e.target.value;
+      const sw = startOfWeek(parseISO(iso));
+      data.startDate = fmtISO(sw);
+      save(data); render();
+    });
+    weekSel.addEventListener("change", render);
+    el("goCurrent").addEventListener("click", ()=>{ weekSel.value = String(getCurrentWeekIndex()); render(); });
+    el("saveAff").addEventListener("click", ()=>{ setWeekData(Number(weekSel.value), { affirmation: affTA.value.trim() }); });
+    el("clearAff").addEventListener("click", ()=>{ affTA.value=""; setWeekData(Number(weekSel.value), { affirmation: "" }); });
+    notesTA.addEventListener("input", ()=>{ setWeekData(Number(weekSel.value), { notes: notesTA.value }); });
+
+    el("markM").addEventListener("click", ()=>{
+      const wStart = getWeekStart(Number(weekSel.value));
+      for(let i=0;i<7;i++){ const iso = fmtISO(addDays(wStart,i)); toggleProgress(iso,"m",true); }
+    });
+    el("markE").addEventListener("click", ()=>{
+      const wStart = getWeekStart(Number(weekSel.value));
+      for(let i=0;i<7;i++){ const iso = fmtISO(addDays(wStart,i)); toggleProgress(iso,"e",true); }
+    });
+    el("clearWeek").addEventListener("click", ()=>{
+      const wStart = getWeekStart(Number(weekSel.value));
+      for(let i=0;i<7;i++){ const iso = fmtISO(addDays(wStart,i)); data.progress[iso] = { m:false, e:false }; }
+      save(data); render();
+    });
+
+    el("btnMorning").addEventListener("click", ()=>{
+      const iso = fmtISO(today);
+      toggleProgress(iso, "m", true);
+    });
+    el("btnEvening").addEventListener("click", ()=>{
+      const iso = fmtISO(today);
+      toggleProgress(iso, "e", true);
+    });
+
+    // Export / Import / Print
+    el("exportBtn").addEventListener("click", ()=>{
+      const blob = new Blob([JSON.stringify(data,null,2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `dziennik-affirm52-${fmtISO(new Date())}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+    el("importFile").addEventListener("change", (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const next = JSON.parse(String(reader.result));
+          if (!next.startDate || !next.weeks || !next.progress) throw new Error("invalid");
+          data = next; save(data); render();
+          alert("Zaimportowano dane.");
+        } catch (err) {
+          alert("Nie udało się wczytać pliku JSON.");
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = "";
+    });
+    el("printBtn").addEventListener("click", ()=> window.print());
+
+    if (streakModeSel) {
+      streakModeSel.addEventListener("change", ()=>{
+        streakMode = streakModeSel.value;
+        localStorage.setItem("affirm52_streak_mode", streakMode);
+        render();
+      });
+    }
+    if (streakGraceCb) {
+      streakGraceCb.addEventListener('change', ()=>{
+        streakGrace = !!streakGraceCb.checked;
+        localStorage.setItem('affirm52_streak_grace', String(streakGrace));
+        render();
+      });
+    }
+
+    // Theme toggle
+    el("themeBtn").addEventListener("click", ()=>{
+      const root = document.documentElement;
+      if (root.classList.contains("dark")) { root.classList.remove("dark"); theme="light"; }
+      else { root.classList.add("dark"); theme="dark"; }
+      localStorage.setItem("affirm52_theme", theme);
+    });
+
+    // Reader mode (query elements on demand to avoid null refs before DOM is parsed)
+    el("readAff").addEventListener("click", ()=>{
+      const reader = el("reader");
+      const readerBody = el("readerBody");
+      const fontRange = el("fontRange");
+      const closeReader = el("closeReader");
+      const week = Number(weekSel.value || getCurrentWeekIndex());
+      const w = data.weeks[String(week)] || { affirmation: "" };
+      readerBody.textContent = (affTA.value || w.affirmation || "Brak afirmacji. Wpisz ją w polu tygodnia.");
+      readerBody.style.fontSize = (Number(localStorage.getItem("affirm52_font")||22)) + "px";
+      reader.classList.add("open");
+      closeReader.onclick = ()=> reader.classList.remove("open");
+      fontRange.oninput = ()=>{ readerBody.style.fontSize = fontRange.value + "px"; localStorage.setItem("affirm52_font", fontRange.value); };
+    });
+
+    // Initial render
+    render();
+  </script>
+
+  <div class="reader" id="reader">
+    <div class="panel">
+      <div class="top">
+        <div class="label">Tryb czytania</div>
+        <div class="row-right">
+          <label class="label" for="fontRange">Rozmiar</label>
+          <input class="range" id="fontRange" type="range" min="16" max="40" value="22"/>
+          <button class="btn close" id="closeReader">Zamknij</button>
+        </div>
+      </div>
+      <div class="body" id="readerBody" style="font-size:22px; white-space:pre-wrap;"></div>
+    </div>
+  </div>
+</body>
+</html>
+
