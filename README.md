@@ -1,0 +1,2 @@
+# Dziennik-afirmacji-
+Dziennik afirmacji 
